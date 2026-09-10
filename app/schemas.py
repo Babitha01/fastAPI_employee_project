@@ -1,13 +1,27 @@
-from pydantic import BaseModel,EmailStr
+from pydantic import BaseModel, EmailStr
 from typing import Literal
-class Employee(BaseModel):
+
+class EmployeeCreate(BaseModel):
     name: str
     email: EmailStr
     department: str
     primary_skill: str
     location: str
-    work_mode: Literal["WFO","WFO"]
-class EmployeeResponse(Employee):
-    id:int
-    is_active: bool =True
+    work_mode: Literal["WFH", "WFO"]
+class EmployeeUpdate(BaseModel):
+    name: str
+    email: EmailStr
+    department: str
+    primary_skill: str
+    location: str
+    work_mode: Literal["WFH", "WFO"]
+class EmployeeResponse(BaseModel):
+    id: int
+    name: str
+    email: EmailStr
+    department: str
+    primary_skill: str
+    location: str
+    work_mode: Literal["WFH", "WFO"]
+    is_active: bool
     created_at: str

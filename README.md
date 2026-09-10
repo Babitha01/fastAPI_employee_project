@@ -1,5 +1,4 @@
-# Employee Management FastAPI
-
+# FastAPI Employee Management 
 ## Project Description
 
 This project is a FastAPI backend for managing employee records.
@@ -64,7 +63,7 @@ What I Learned
 I learned how to build a REST API using FastAPI, create Pydantic schemas, implement CRUD operations, add validations, and test APIs using Swagger UI.
 
 Difficulties
-I faced difficulties with employee ID validation, duplicate email validation, and understanding FastAPI while developing the project.
+I faced difficulties with employee ID validation, duplicate email validation, and understanding FastAPI while developing the project. Testing different API responses using Swagger UI and Understanding GET, POST, PUT, and DELETE operations
 
 Assumptions
 Employee data is stored temporarily in a Python list. The data will be lost when the application restarts.
