@@ -17,6 +17,10 @@ def add_employee(employee: EmployeeCreate):
             )
     return service.create_employee(employee)
 
+@app.get("/employees",response_model=list[EmployeeResponse])
+def get_employees():
+    return service.get_all_employees
+
 @app.get("/employees/{employee_id}", response_model=EmployeeResponse)
 def get_employee(employee_id: int):
     if employee_id <= 0:
@@ -40,6 +44,12 @@ def update_employee(employee_id: int, employee: EmployeeUpdate):
             status_code=400,
             detail="Employee ID must be greater than 0"
         )
+    for existing_employee in service.employees:
+        if existing_employee["email"] == employee.email and existing_employee["id"] != employee_id:
+            raise HTTPException(
+                status_code=400,
+                detail="Email already exists"
+            )
     updated_employee = service.update_employee(employee_id, employee)
     if updated_employee is None:
         raise HTTPException(

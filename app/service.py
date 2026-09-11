@@ -1,7 +1,11 @@
 from datetime import datetime
 employees = []
+next_employee_id = 1
 def create_employee(employee):
-    employee_id = len(employees) + 1
+    global next_employee_id
+    employee_id = next_employee_id
+    next_employee_id +=1
+    
     employee_data = {
         "id": employee_id,
         "name": employee.name,
@@ -11,7 +15,7 @@ def create_employee(employee):
         "location": employee.location,
         "work_mode": employee.work_mode,
         "is_active": True,
-        "created_at": "2026-09-08"
+        "created_at": datetime.now().isoformat()
     }
     employees.append(employee_data)
     return employee_data
