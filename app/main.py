@@ -10,7 +10,7 @@ def health_check():
 @app.post("/employees", response_model=EmployeeResponse)
 def add_employee(employee: EmployeeCreate):
     for existing_employee in service.employees:
-        if existing_employee["email"] == employee.email:
+        if existing_employee["email"].lower()== employee.email.lower():
             raise HTTPException(
                 status_code=400,
                 detail="Email already exists"
@@ -19,7 +19,7 @@ def add_employee(employee: EmployeeCreate):
 
 @app.get("/employees",response_model=list[EmployeeResponse])
 def get_employees():
-    return service.get_all_employees
+    return service.get_all_employees()
 
 @app.get("/employees/{employee_id}", response_model=EmployeeResponse)
 def get_employee(employee_id: int):
@@ -44,13 +44,22 @@ def update_employee(employee_id: int, employee: EmployeeUpdate):
             status_code=400,
             detail="Employee ID must be greater than 0"
         )
+    existing_employee = service.get_employee_by_id(employee_id)
+
+    if existing_employee is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Employee not found"
+        )
+
     for existing_employee in service.employees:
-        if existing_employee["email"] == employee.email and existing_employee["id"] != employee_id:
+        if existing_employee["email"].lower() == employee.email.lower() and existing_employee["id"] != employee_id:
             raise HTTPException(
                 status_code=400,
                 detail="Email already exists"
             )
     updated_employee = service.update_employee(employee_id, employee)
+
     if updated_employee is None:
         raise HTTPException(
             status_code=404,
