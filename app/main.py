@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.schemas import EmployeeCreate, EmployeeUpdate, EmployeeResponse
 from app import service
@@ -12,18 +13,18 @@ def get_db():
         db.close()
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
+
 @app.get("/health")
 def health_check():
     return {"status": "Application is running"}
 
-@app.post("/employees", response_model=EmployeeResponse)
+@app.post("/employees", response_model=EmployeeResponse,status_code=201)
 def add_employee(
     employee: EmployeeCreate,
     db: Session = Depends(get_db)
 ):
     existing_employee = db.query(Employee).filter(
-        Employee.email == employee.email
-    ).first()
+        func.lower(Employee.email) == employee.email.lower()).first()
     if existing_employee:
         raise HTTPException(
             status_code=400,
@@ -71,9 +72,8 @@ def update_employee(
             detail="Employee not found"
         )
     duplicate_email = db.query(Employee).filter(
-        Employee.email == employee.email,
-        Employee.id != employee_id
-    ).first()
+        func.lower(Employee.email)== employee.email.lower(),
+        Employee.id != employee_id).first()
     if duplicate_email:
         raise HTTPException(
             status_code=400,
