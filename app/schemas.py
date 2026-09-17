@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from typing import Literal
+from datetime import datetime
 class EmployeeCreate(BaseModel):
     name: str = Field(min_length=1)
     email: EmailStr
@@ -23,4 +24,6 @@ class EmployeeResponse(BaseModel):
     location: str
     work_mode: Literal["WFH", "WFO"]
     is_active: bool
-    created_at: str
+    created_at: datetime
+class Config:
+    from_attributes = True
