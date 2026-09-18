@@ -116,6 +116,5 @@ def delete_employee(
             detail="Employee not found"
         )
     return {
-        "message": "Employee deleted successfully",
-        "employee": deleted_employee
+        "message": f"Employee with ID {employee_id} was deleted successfully"
     }
