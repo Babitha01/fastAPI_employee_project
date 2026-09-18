@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 from app.models import Employee
 from app.schemas import EmployeeCreate, EmployeeUpdate
 def create_employee(db: Session, employee: EmployeeCreate):
@@ -17,9 +18,9 @@ def create_employee(db: Session, employee: EmployeeCreate):
         db.refresh(new_employee)
 
         return new_employee
-    except Exception:
+    except SQLAlchemyError:
         db.rollback()
-        raise
+        raise 
 
 def get_all_employees(db: Session):
     return db.query(Employee).all()
@@ -45,6 +46,7 @@ def update_employee(
     existing_employee.primary_skill = employee.primary_skill
     existing_employee.location = employee.location
     existing_employee.work_mode = employee.work_mode
+    existing_employee.is_active = employee.is_active
     try:
         db.commit()
         db.refresh(existing_employee)

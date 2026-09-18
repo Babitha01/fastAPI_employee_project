@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.schemas import EmployeeCreate, EmployeeUpdate, EmployeeResponse
@@ -30,11 +31,16 @@ def add_employee(
             status_code=400,
             detail="Email already exists"
         )
-    return service.create_employee(db, employee)
-
+    try:
+       return service.create_employee(db, employee)
+    except SQLAlchemyError:
+        raise HTTPException(status_code=500,detail="Database operation failed. Please try again.")        
 @app.get("/employees",response_model=list[EmployeeResponse]) 
 def get_employees(db: Session = Depends(get_db)):
-    return service.get_all_employees(db)
+    try:
+        return service.get_all_employees(db)
+    except SQLAlchemyError:
+        raise HTTPException(status_code=500,detail="Databse operation failed. Please try again.")
 
 @app.get("/employees/{employee_id}", response_model=EmployeeResponse)
 def get_employee(
@@ -46,7 +52,10 @@ def get_employee(
             status_code=400,
             detail="Employee ID must be greater than 0"
         )
-    employee = service.get_employee_by_id(db, employee_id)
+    try:    
+        employee = service.get_employee_by_id(db, employee_id)
+    except SQLAlchemyError:
+        raise HTTPException(status_code=500,detail="Databse operation failed. Please try again.")
     if employee is None:
         raise HTTPException(
             status_code=404,
@@ -79,11 +88,14 @@ def update_employee(
             status_code=400,
             detail="Email already exists"
         )
-    updated_employee = service.update_employee(
+    try:
+        updated_employee = service.update_employee(
         db, employee_id, employee
     )
-    return updated_employee
-
+        return updated_employee
+    except SQLAlchemyError:
+        raise HTTPException(status_code=500,detail="Database operation failed. Please try again.")
+    
 @app.delete("/employees/{employee_id}")
 def delete_employee(
     employee_id: int,
@@ -94,7 +106,10 @@ def delete_employee(
             status_code=400,
             detail="Employee ID must be greater than 0"
         )
-    deleted_employee = service.delete_employee(db, employee_id)
+    try:
+        deleted_employee = service.delete_employee(db, employee_id)
+    except SQLAlchemyError:
+        raise HTTPException(status_code=500,detail="Database operation failed. Please try again.")
     if deleted_employee is None:
         raise HTTPException(
             status_code=404,
