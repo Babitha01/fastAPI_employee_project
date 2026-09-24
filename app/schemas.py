@@ -42,5 +42,12 @@ class EmployeeResponse(BaseModel):
     work_mode: Literal["WFH", "WFO"]
     is_active: bool
     created_at: datetime
+    
+class EmployeeListResponse(BaseModel):
+    total: int
+    limit: int
+    offset: int
+    items: list[EmployeeResponse]
+        
 class Config:
     from_attributes = True

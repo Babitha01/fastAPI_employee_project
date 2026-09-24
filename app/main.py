@@ -1,8 +1,9 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Query 
+from typing import Literal
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-from app.schemas import EmployeeCreate, EmployeeUpdate, EmployeeResponse
+from app.schemas import EmployeeCreate, EmployeeUpdate, EmployeeResponse,EmployeeListResponse
 from app import service
 from app.database import engine, Base
 from app.models import Employee
@@ -35,13 +36,25 @@ def add_employee(
        return service.create_employee(db, employee)
     except SQLAlchemyError:
         raise HTTPException(status_code=500,detail="Database operation failed. Please try again.")        
-@app.get("/employees",response_model=list[EmployeeResponse]) 
-def get_employees(db: Session = Depends(get_db)):
+    
+@app.get("/employees", response_model=EmployeeListResponse)
+def get_employees(
+    department: str | None = Query(default=None),
+    work_mode: Literal["WFH","WFO"] | None=Query(default=None),
+    is_active: bool | None = Query(default=None),
+    search: str | None =Query(default=None),
+    limit: int=Query(default=10,ge=1,le=100),
+    offset: int =Query(default=0,ge=0),
+    db: Session = Depends(get_db)
+):
     try:
-        return service.get_all_employees(db)
+        return service.get_all_employees(db,department,search,work_mode,is_active,limit,offset)
     except SQLAlchemyError:
-        raise HTTPException(status_code=500,detail="Databse operation failed. Please try again.")
-
+        raise HTTPException(
+            status_code=500,
+            detail="Database operation failed. Please try again."
+        )
+        
 @app.get("/employees/{employee_id}", response_model=EmployeeResponse)
 def get_employee(
     employee_id: int,

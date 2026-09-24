@@ -22,9 +22,24 @@ def create_employee(db: Session, employee: EmployeeCreate):
         db.rollback()
         raise 
 
-def get_all_employees(db: Session):
-    return db.query(Employee).all()
-
+def get_all_employees(db: Session, department=None,search=None, work_mode=None,is_active=None,limit=10,offset=0):
+    query = db.query(Employee)
+    if department:
+        query = query.filter(Employee.department == department)
+    if search:
+        query=query.filter(Employee.name.ilike(f"%{search}%"))
+    if work_mode:
+        query = query.filter(Employee.work_mode == work_mode)
+    if is_active is not None:
+        query=query.filter(Employee.is_active==is_active)
+    total =query.count()
+    items=query.order_by(Employee.id.asc()).offset(offset).limit(limit).all()
+    return {
+        "total":total,
+        "limit":limit,
+        "offset":offset,
+        "items":items
+    }
 def get_employee_by_id(db: Session, employee_id: int):
     return db.query(Employee).filter(
         Employee.id == employee_id
