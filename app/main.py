@@ -171,15 +171,7 @@ def get_work_items(
     db: Session = Depends(get_db)
 ):
     try:
-        return service.get_all_work_items(
-            db,
-            search,
-            employee_id,
-            status,
-            priority,
-            limit,
-            offset
-        )
+        return service.get_all_work_items(db,search,employee_id,status,priority,limit,offset)
     except SQLAlchemyError:
         raise HTTPException(
             status_code=500,

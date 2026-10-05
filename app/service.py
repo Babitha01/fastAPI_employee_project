@@ -94,7 +94,6 @@ def create_work_item(db: Session, work_item: WorkItemCreate):
         priority=work_item.priority,
         due_date=work_item.due_date
     )
-
     try:
         db.add(new_work_item)
         db.commit()
@@ -103,7 +102,6 @@ def create_work_item(db: Session, work_item: WorkItemCreate):
     except SQLAlchemyError:
         db.rollback()
         raise
-
 
 def get_all_work_items(
     db: Session,
@@ -155,7 +153,6 @@ def update_work_item(
         .filter(WorkItem.id == work_item_id)
         .first()
     )
-
     if existing_work_item is None:
         return None
     existing_work_item.title = work_item.title
@@ -164,7 +161,6 @@ def update_work_item(
     existing_work_item.status = work_item.status
     existing_work_item.priority = work_item.priority
     existing_work_item.due_date = work_item.due_date
-
     try:
         db.commit()
         db.refresh(existing_work_item)

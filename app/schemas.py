@@ -56,10 +56,8 @@ class AssignedEmployeeResponse(BaseModel):
     id: int
     name: str
     email: EmailStr
-
     class Config:
         from_attributes = True
-
 
 class WorkItemCreate(BaseModel):
     title: str = Field(min_length=1)
@@ -76,7 +74,6 @@ class WorkItemCreate(BaseModel):
             raise ValueError("Title cannot be empty or contain only spaces")
         return value
 
-
 class WorkItemUpdate(BaseModel):
     title: str = Field(min_length=1)
     description: str | None = None
@@ -92,7 +89,6 @@ class WorkItemUpdate(BaseModel):
             raise ValueError("Title cannot be empty or contain only spaces")
         return value
 
-
 class WorkItemResponse(BaseModel):
     id: int
     title: str
@@ -103,16 +99,13 @@ class WorkItemResponse(BaseModel):
     due_date: date | None = None
     created_at: datetime
     assigned_employee: AssignedEmployeeResponse
-
     class Config:
         from_attributes = True
-
 
 class WorkItemListResponse(BaseModel):
     total: int
     limit: int
     offset: int
     items: list[WorkItemResponse]
-
     class Config:
         from_attributes = True
