@@ -119,6 +119,13 @@ def delete_employee(
             status_code=400,
             detail="Employee ID must be greater than 0"
         )
+    work_item_count =db.query(WorkItem).filter(
+        WorkItem.employee_id ==employee_id).count()
+    if work_item_count > 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Employee has assigned work items.Reassign or delete the work items before deleting the employee."
+        )   
     try:
         deleted_employee = service.delete_employee(db, employee_id)
     except SQLAlchemyError:
