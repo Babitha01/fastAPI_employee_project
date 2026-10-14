@@ -3,7 +3,7 @@ from typing import Literal
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-from app.schemas import EmployeeCreate, EmployeeUpdate, EmployeeResponse,EmployeeListResponse,WorkItemCreate,WorkItemUpdate,WorkItemResponse,WorkItemListResponse
+from app.schemas import EmployeeCreate, EmployeeUpdate, EmployeeResponse,EmployeeListResponse,WorkItemCreate,WorkItemUpdate,WorkItemStatusUpdate,WorkItemResponse,WorkItemListResponse
 from app import service
 from app.database import engine, Base
 from app.models import Employee ,WorkItem
@@ -155,7 +155,11 @@ def add_work_item(
             status_code=404,
             detail="Employee not found"
         )
-
+    if work_item.status != "TODO":
+        raise HTTPException(
+            status_code=400,
+            detail="New work items must have status TODO"
+        )
     try:
         return service.create_work_item(db, work_item)
     except SQLAlchemyError:
@@ -261,6 +265,10 @@ def update_work_item(
             work_item_id,
             work_item
         )
+    except service.WorkItemStatusError as error:
+        raise HTTPException(
+            status_code=400,
+            detail=str(error))
     except SQLAlchemyError:
         raise HTTPException(
             status_code=500,
@@ -296,3 +304,67 @@ def delete_work_item(
             detail="Work item not found"
         )
     return None
+
+@app.patch(
+    "/work-items/{work_item_id}/status",
+    response_model=WorkItemResponse
+)
+def update_work_item_status(
+    work_item_id: int,
+    status_data: WorkItemStatusUpdate,
+    db: Session = Depends(get_db)
+):
+    if work_item_id <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Work item ID must be greater than 0"
+        )
+    try:
+        updated_work_item = service.update_work_item_status(
+            db,
+            work_item_id,
+            status_data.status
+        )
+    except service.WorkItemStatusError as error:
+        raise HTTPException(
+            status_code=400,
+            detail=str(error)
+        )
+    except SQLAlchemyError:
+        raise HTTPException(
+            status_code=500,
+            detail="Database operation failed. Please try again."
+        )
+    if updated_work_item is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Work item not found"
+        )
+    return updated_work_item
+
+@app.get("/employees/{employee_id}/work-summary")
+def get_employee_work_summary(
+    employee_id: int,
+    db: Session = Depends(get_db)
+):
+    if employee_id <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Employee ID must be greater than 0"
+        )
+    try:
+        summary = service.get_employee_work_summary(
+            db,
+            employee_id
+        )
+    except SQLAlchemyError:
+        raise HTTPException(
+            status_code=500,
+            detail="Database operation failed. Please try again."
+        )
+    if summary is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Employee not found"
+        )
+    return summary

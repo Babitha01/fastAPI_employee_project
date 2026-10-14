@@ -1,7 +1,25 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import func
 from app.models import Employee,WorkItem
 from app.schemas import EmployeeCreate, EmployeeUpdate,WorkItemCreate,WorkItemUpdate
+
+class WorkItemStatusError(Exception):
+    pass
+
+def change_work_item_status(existing_work_item, new_status):
+    current_status = existing_work_item.status
+    if new_status == current_status:
+        return
+    if current_status == "TODO" and new_status == "IN_PROGRESS":
+        existing_work_item.status = new_status
+    elif current_status == "IN_PROGRESS" and new_status == "COMPLETED":
+        existing_work_item.status = new_status
+    else:
+        raise WorkItemStatusError(
+            f"Invalid status transition from {current_status} to {new_status}"
+        )
+        
 def create_employee(db: Session, employee: EmployeeCreate):
     new_employee = Employee(
         name=employee.name,
@@ -155,16 +173,20 @@ def update_work_item(
         .filter(WorkItem.id == work_item_id)
         .first()
     )
-
     if existing_work_item is None:
         return None
+    if "status" in work_item.model_fields_set:
+        if work_item.status is None:
+            raise WorkItemStatusError("Status cannot be null")
+        change_work_item_status(
+            existing_work_item,
+            work_item.status
+        )
     existing_work_item.title = work_item.title
     existing_work_item.description = work_item.description
     existing_work_item.employee_id = work_item.employee_id
-    existing_work_item.status = work_item.status
     existing_work_item.priority = work_item.priority
     existing_work_item.due_date = work_item.due_date
-
     try:
         db.commit()
         db.refresh(existing_work_item)
@@ -172,7 +194,7 @@ def update_work_item(
     except SQLAlchemyError:
         db.rollback()
         raise
-
+    
 def delete_work_item(db: Session, work_item_id: int):
     existing_work_item = (
         db.query(WorkItem)
@@ -189,3 +211,58 @@ def delete_work_item(db: Session, work_item_id: int):
     except SQLAlchemyError:
         db.rollback()
         raise
+    
+def update_work_item_status(
+    db: Session,
+    work_item_id: int,
+    new_status: str
+):
+    existing_work_item = (
+        db.query(WorkItem)
+        .filter(WorkItem.id == work_item_id)
+        .first()
+    )
+    if existing_work_item is None:
+        return None
+    change_work_item_status(existing_work_item, new_status)
+    try:
+        db.commit()
+        db.refresh(existing_work_item)
+        return existing_work_item
+    except SQLAlchemyError:
+        db.rollback()
+        raise
+
+def get_employee_work_summary(
+    db: Session,
+    employee_id: int
+):
+    employee = (
+        db.query(Employee)
+        .filter(Employee.id == employee_id)
+        .first()
+    )
+    if employee is None:
+        return None
+    status_counts = (
+        db.query(WorkItem.status, func.count(WorkItem.id))
+        .filter(WorkItem.employee_id == employee_id)
+        .group_by(WorkItem.status)
+        .all()
+    )
+    summary = {
+        "employee_id": employee_id,
+        "total_work_items": 0,
+        "todo": 0,
+        "in_progress": 0,
+        "completed": 0
+    }
+    for status, count in status_counts:
+        if status == "TODO":
+            summary["todo"] = count
+        elif status == "IN_PROGRESS":
+            summary["in_progress"] = count
+        elif status == "COMPLETED":
+            summary["completed"] = count
+        summary["total_work_items"] += count
+    return summary    

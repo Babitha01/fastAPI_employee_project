@@ -65,7 +65,7 @@ class WorkItemCreate(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     description: str | None = Field(default=None, max_length=500)
     employee_id: int = Field(gt=0)
-    status: Literal["TODO", "IN_PROGRESS", "COMPLETED"] = "TODO"
+    status: Literal["TODO","IN_PROGRESS","COMPLETED"] = "TODO"
     priority: Literal["LOW", "MEDIUM", "HIGH"] = "MEDIUM"
     due_date: date | None = None
 
@@ -81,7 +81,7 @@ class WorkItemUpdate(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     description: str | None = Field(default=None, max_length=500)
     employee_id: int = Field(gt=0)
-    status: Literal["TODO", "IN_PROGRESS", "COMPLETED"]
+    status: Literal["TODO", "IN_PROGRESS", "COMPLETED"] | None =None
     priority: Literal["LOW", "MEDIUM", "HIGH"]
     due_date: date | None = None
 
@@ -91,8 +91,10 @@ class WorkItemUpdate(BaseModel):
         if not value.strip():
             raise ValueError("Title cannot be empty or contain only spaces")
         return value
-
-
+    
+class WorkItemStatusUpdate(BaseModel):
+    status:Literal["TODO","IN_PROGRESS","COMPLETED"]
+    
 class WorkItemResponse(BaseModel):
     id: int
     title: str
