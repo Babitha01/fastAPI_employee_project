@@ -81,15 +81,15 @@ class WorkItemUpdate(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     description: str | None = Field(default=None, max_length=500)
     employee_id: int = Field(gt=0)
-    status: Literal["TODO", "IN_PROGRESS", "COMPLETED"] | None =None
+    status: Literal["TODO", "IN_PROGRESS", "COMPLETED"] | None = None
     priority: Literal["LOW", "MEDIUM", "HIGH"]
     due_date: date | None = None
 
-    @field_validator("title")
+    @field_validator("status",mode="before")
     @classmethod
-    def reject_blank_title(cls, value):
-        if not value.strip():
-            raise ValueError("Title cannot be empty or contain only spaces")
+    def reject_null_status(cls, value):
+        if value is None:
+            raise ValueError("Status cannot be null")
         return value
     
 class WorkItemStatusUpdate(BaseModel):
