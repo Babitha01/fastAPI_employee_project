@@ -84,6 +84,13 @@ class WorkItemUpdate(BaseModel):
     status: Literal["TODO", "IN_PROGRESS", "COMPLETED"] | None = None
     priority: Literal["LOW", "MEDIUM", "HIGH"]
     due_date: date | None = None
+    
+    @field_validator("title")
+    @classmethod
+    def reject_blank_title(cls,value):
+        if not value.strip():
+            raise ValueError("Title cannot be empty or contain only spaces")
+        return value
 
     @field_validator("status",mode="before")
     @classmethod
