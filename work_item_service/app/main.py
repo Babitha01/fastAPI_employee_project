@@ -27,6 +27,12 @@ def create_work_item(
     db: Session = Depends(get_db)
 ):
     try:
+        if work_item_data.status !="TODO":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="New work item must have TODO status"
+            )
+            
         work_item = service.create_work_item(db, work_item_data)
         if work_item is None:
             raise HTTPException(

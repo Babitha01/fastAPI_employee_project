@@ -6,7 +6,7 @@ class WorkItemCreate(BaseModel):
     title: str = Field(min_length=1, max_length=150)
     description: str | None = None
     employee_id: int = Field(gt=0)
-    status: Literal["TODO"] = "TODO"
+    status: Literal["TODO", "IN_PROGRESS", "COMPLETED"]="TODO"
     priority: Literal["LOW", "MEDIUM", "HIGH"] = "MEDIUM"
     due_date: datetime | None = None
     model_config = ConfigDict(str_strip_whitespace=True)
